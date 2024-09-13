@@ -1,7 +1,7 @@
 //object -> {}
 //array -> []
 const lod = require ('lodash')
-sdasdasd
+
 const holidays = [
     {name:"Easter", date: new Date ("2014-10-31")},
     {name:"christmas", date: new Date ("2014-11-14")},
