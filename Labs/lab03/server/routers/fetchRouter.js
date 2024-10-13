@@ -40,7 +40,7 @@ router.get("/multiple", (req, res) => {
   });
 });
 
-router.get("/randomDog",async (req, res) => {
+router.get("/randomDog", async (req, res) => {
   try {
     const response = await fetch("https://dog.ceo/api/breeds/image/random");
     if (!response.ok) {
@@ -48,8 +48,8 @@ router.get("/randomDog",async (req, res) => {
     }
     const data = await response.json();
     res.json(data.message);
-  }catch (error) {
-      console.error("There was a problem with the fetch operation:", error);
+  } catch (error) {
+    console.error("There was a problem with the fetch operation:", error);
   }
 });
 module.exports = router;
