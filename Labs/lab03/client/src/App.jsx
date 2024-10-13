@@ -5,6 +5,7 @@ function App() {
   const [multipleFiles, setMultipleFiles] = useState([]);
   const [fetchedSingleFile, setFetchedSingleFile] = useState(null);
   const [fetchedMultipleFiles, setFetchedMultipleFiles] = useState([]);
+  const [fetchedRandomDogImage, setFetchedRandomDogImage] = useState(null);
 
   const handleSingleFileChange = (e) => {
     setSingleFile(e.target.files[0]);
@@ -74,6 +75,18 @@ function App() {
     }
   };
 
+  const fetchRandomDogImage = async () => {
+    try {
+      const response = await fetch("http://localhost:8000/fetch/randomDog");
+      console.log(response)
+      const url = await response.json();;
+      setFetchedRandomDogImage(url);
+      console.log(url)
+    } catch (error) {
+      console.error("Error fetching Dog Image:", error);
+    }
+  };
+
   return (
     <>
       <h1>File Upload and Fetch App</h1>
@@ -133,6 +146,22 @@ function App() {
           </div>
         )}
       </div>
+
+      <div>
+        <h2>Fetch Random Dog Image</h2>
+        <button onClick={fetchRandomDogImage}>Fetch Random Dog Image</button>
+        {fetchedRandomDogImage && (
+          <div>
+            <h3>Random Dog Image</h3>
+            <img
+              src={fetchedRandomDogImage}
+              alt="Rando Doggo"
+              style={{ width: "200px", marginTop: "10px" }}
+            />
+          </div>
+        )}
+      </div>
+
     </>
   );
 }
