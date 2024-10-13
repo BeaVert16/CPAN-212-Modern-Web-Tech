@@ -47,6 +47,29 @@ function App() {
     }
   };
 
+  const uploadDogImageToServer = async () => {
+    try {
+      const dogImage = await fetch(fetchedRandomDogImage);
+      const blob = await dogImage.blob();
+
+      const formData = new FormData();
+      formData.append("file", blob, "rando_Doggo.jpg");
+
+      try {
+        const response = await fetch("http://localhost:8000/save/single", {
+          method: "POST",
+          body: formData,
+        });
+        const data = await response.json();
+        alert(data.message);
+      } catch (error) {
+        console.error("Error uploading single file:", error);
+      }
+    } catch (error) {
+      console.error("Error saving dog image:", error);
+    }
+  };
+
   const fetchSingleFile = async () => {
     try {
       const response = await fetch("http://localhost:8000/fetch/single");
@@ -78,10 +101,10 @@ function App() {
   const fetchRandomDogImage = async () => {
     try {
       const response = await fetch("http://localhost:8000/fetch/randomDog");
-      console.log(response)
-      const url = await response.json();;
+      console.log(response);
+      const url = await response.json();
       setFetchedRandomDogImage(url);
-      console.log(url)
+      console.log(url);
     } catch (error) {
       console.error("Error fetching Dog Image:", error);
     }
@@ -152,16 +175,18 @@ function App() {
         <button onClick={fetchRandomDogImage}>Fetch Random Dog Image</button>
         {fetchedRandomDogImage && (
           <div>
-            <h3>Random Dog Image</h3>
             <img
               src={fetchedRandomDogImage}
               alt="Rando Doggo"
               style={{ width: "200px", marginTop: "10px" }}
             />
+            <br></br>
+            <button onClick={uploadDogImageToServer}>
+              Save Dog Image to Server?
+            </button>
           </div>
         )}
       </div>
-
     </>
   );
 }
