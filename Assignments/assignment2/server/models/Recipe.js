@@ -1,4 +1,3 @@
-// models/Recipe.js
 const mongoose = require("mongoose");
 
 const RecipeSchema = new mongoose.Schema({
@@ -12,7 +11,7 @@ const RecipeSchema = new mongoose.Schema({
   },
   difficulty: {
     type: String,
-    enum: ["Easy", "Medium", "Hard"],
+    enum: ["Easy", "Medium", "Hard"],//didnt really need this as its just going to put what was sent but why not
     required: true,
   },
   ingredients: {
