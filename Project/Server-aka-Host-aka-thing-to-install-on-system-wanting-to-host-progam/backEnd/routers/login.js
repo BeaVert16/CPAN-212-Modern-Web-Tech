@@ -2,6 +2,7 @@ const express = require("express");
 const User = require("../models/account");
 const router = express.Router();
 const bcrypt = require("bcryptjs");
+const auth = require("../middleware/auth");
 require("dotenv").config();
 
 router.post("/register", (req, res) => {
@@ -31,13 +32,11 @@ router.post("/register", (req, res) => {
 
 router.post("/login", async (req, res) => {
   const { username, password } = req.body;
-
   try {
-    const user_account = await User.findOne({ username: username }); // Use username instead of email
+    const user_account = await User.findOne({ username });
     if (!user_account) {
-      return res.status(400).json({ error: "Invalid credentials t" });
+      return res.status(400).json({ error: "Invalid credentials" });
     }
-
     const isMatch = await bcrypt.compare(password, user_account.password);
     if (!isMatch) {
       return res.status(400).json({ error: "Invalid credentials" });
@@ -46,7 +45,7 @@ router.post("/login", async (req, res) => {
     req.session.user = {
       username: user_account.username,
       isAdmin: user_account.isAdmin,
-      isPremium: user_account.isPremium
+      isPremium: user_account.isPremium,
     };
     console.log("Session data:", req.session);
 
@@ -57,12 +56,6 @@ router.post("/login", async (req, res) => {
   }
 });
 
-router.get("/session-check", (req, res) => {
-  if (req.session && req.session.user) {
-    return res.status(200).json({ isAuthenticated: true, user: req.session.user });
-  }
-  return res.status(401).json({ isAuthenticated: false });
-});
-
+router.get("/session-check", auth);
 
 module.exports = router;

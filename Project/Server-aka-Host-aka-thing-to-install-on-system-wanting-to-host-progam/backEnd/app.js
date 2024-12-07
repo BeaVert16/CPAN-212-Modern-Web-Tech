@@ -3,11 +3,16 @@ const PORT = process.env.PORT || 8000;
 const BACKEDADDRESS = process.env.BACKEDADDRESS || "http://localhost";
 const express = require("express");
 const app = express();
+const session = require("express-session");
 const cors = require("cors");
 
 const logger = require("./middleware/logger");
 
 const login = require("./routers/login");
+const client = require("./routers/client");
+const test = require("./routers/test")
+
+const connectMongoDB  = require("./config/mongodb");
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -15,7 +20,7 @@ app.use(logger);
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || origin.startsWith("http://192.168.")) {
+      if (!origin || origin.startsWith("http://192.168.") || origin.startsWith("http://localhost")) {
         callback(null, true);
       } else {
         callback(new Error("Not allowed by CORS"));
@@ -25,25 +30,8 @@ app.use(
   })
 );
 
-
-
-
-const mongoose = require("mongoose");
-const session = require("express-session");
 const MongoStore = require("connect-mongo");
-
-mongoose.connect(process.env.MONGODB_KEY),
-  {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  };
-
-const db = mongoose.connection;
-
-db.on("error", console.error.bind(console, "connection error:"));
-db.once("open", () => {
-  console.log("Connected to MongoDB");
-});
+connectMongoDB();
 
 app.use(
   session({
@@ -61,18 +49,9 @@ app.use(
 
 app.use("/auth", login);
 
-app.get("/test-session", (req, res) => {
-  console.log(req.session)
-  if (req.session.views) {
-    req.session.views++;
-    res.setHeader("Content-Type", "text/html");
-    res.write("<p>Views: " + req.session.views + "</p>");
-    res.end();
-  } else {
-    req.session.views = 1;
-    res.end("Welcome to the session demo. Refresh!");
-  }
-});
+app.use("/client/yonky", client);
+
+app.use("/test", test);
 
 app.get("/", (req, res) => {
   res.send("Backend running");
