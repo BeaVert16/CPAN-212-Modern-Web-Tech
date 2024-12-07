@@ -4,33 +4,25 @@ const BACKEDADDRESS = process.env.BACKEDADDRESS || "http://localhost";
 const express = require("express");
 const app = express();
 const session = require("express-session");
-const cors = require("cors");
+
 
 const logger = require("./middleware/logger");
+const auth = require("./middleware/auth");
+const corsConfig = require("./middleware/cors");
 
 const login = require("./routers/login");
 const client = require("./routers/client");
 const test = require("./routers/test")
 
 const connectMongoDB  = require("./config/mongodb");
+const MongoStore = require("connect-mongo");
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(logger);
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin || origin.startsWith("http://192.168.") || origin.startsWith("http://localhost")) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
-  })
-);
+app.use(corsConfig());
 
-const MongoStore = require("connect-mongo");
+
 connectMongoDB();
 
 app.use(
@@ -47,15 +39,20 @@ app.use(
   })
 );
 
+//whitelisted
 app.use("/auth", login);
-
-app.use("/client/yonky", client);
-
-app.use("/test", test);
 
 app.get("/", (req, res) => {
   res.send("Backend running");
 });
+
+//protected
+
+app.use("/client/yonky", client);
+
+app.use("/test",auth, test);
+
+
 
 app.listen(PORT, () => {
   console.log(`http://${BACKEDADDRESS}:${PORT}`);
