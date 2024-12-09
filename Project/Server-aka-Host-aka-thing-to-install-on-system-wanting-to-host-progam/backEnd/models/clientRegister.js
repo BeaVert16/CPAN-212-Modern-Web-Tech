@@ -63,6 +63,11 @@ const clientSchema = new Schema({
     required: true,
     unique: true,
   },
+  bucket_id: {
+    type: String,
+    required: true,
+    unique: true,
+  },
   system_name: {
     type: String,
   },
@@ -75,7 +80,11 @@ const clientSchema = new Schema({
   cpu: cpuSchema,        
   gpu: gpuSchema,        
   network: networkSchema,
-  drives: driveSchema   
+  drives: driveSchema,
+
+  bucket_nane: {
+    type: String
+  }  
 });
 
 module.exports = mongoose.model("clients", clientSchema);

@@ -5,23 +5,21 @@ const express = require("express");
 const app = express();
 const session = require("express-session");
 
-
 const logger = require("./middleware/logger");
 const auth = require("./middleware/auth");
 const corsConfig = require("./middleware/cors");
 
 const login = require("./routers/login");
 const client = require("./routers/client");
-const test = require("./routers/test")
+const test = require("./routers/test");
 
-const connectMongoDB  = require("./config/mongodb");
+const connectMongoDB = require("./config/mongodb");
 const MongoStore = require("connect-mongo");
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(logger);
 app.use(corsConfig());
-
 
 connectMongoDB();
 
@@ -50,9 +48,7 @@ app.get("/", (req, res) => {
 
 app.use("/client/yonky", client);
 
-app.use("/test",auth, test);
-
-
+app.use("/test", test);
 
 app.listen(PORT, () => {
   console.log(`http://${BACKEDADDRESS}:${PORT}`);
