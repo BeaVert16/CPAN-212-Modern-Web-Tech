@@ -3,9 +3,12 @@ const User = require("../models/account");
 const router = express.Router();
 const bcrypt = require("bcryptjs");
 const auth = require("../middleware/auth");
+const sessionMiddleware = require("../middleware/session");
 require("dotenv").config();
 
-router.post("/register", (req, res) => {
+router.use(sessionMiddleware);
+
+router.post("/register", async (req, res) => {
   const { username, password, actualName, isAdmin, isPremium } = req.body;
 
   bcrypt
@@ -32,30 +35,34 @@ router.post("/register", (req, res) => {
 
 router.post("/login", async (req, res) => {
   const { username, password } = req.body;
+
   try {
-    const user_account = await User.findOne({ username });
-    if (!user_account) {
+    const user = await User.findOne({ username });
+    if (!user) {
       return res.status(400).json({ error: "Invalid credentials" });
     }
-    const isMatch = await bcrypt.compare(password, user_account.password);
+
+    const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ error: "Invalid credentials" });
     }
 
+    // Set session data after successful login
     req.session.user = {
-      username: user_account.username,
-      isAdmin: user_account.isAdmin,
-      isPremium: user_account.isPremium,
+      username: user.username,
+      isAdmin: user.isAdmin,
+      isPremium: user.isPremium,
     };
-    console.log("Session data:", req.session);
 
-    return res.status(200).json({ message: "Login Successful" });
+    return res
+      .status(200)
+      .json({ message: "Login successful", user: req.session.user });
   } catch (error) {
-    console.error("Error during login process: ", error);
+    console.error("Login error:", error);
     return res.status(500).json({ error: "Server error" });
   }
 });
 
-router.get("/session-check", auth);
+router.get("/session-check", auth.checkSession);
 
 module.exports = router;

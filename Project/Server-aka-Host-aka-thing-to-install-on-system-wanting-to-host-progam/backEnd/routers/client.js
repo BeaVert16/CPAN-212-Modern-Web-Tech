@@ -19,6 +19,7 @@ router.post("/register", async (req, res) => {
       system_name,
       total_ram,
       uptime,
+      total_storage_space
     } = req.body;
 
     const cpu = {
@@ -77,6 +78,7 @@ router.post("/register", async (req, res) => {
       gpu,
       network,
       drives,
+      total_storage_space,
     });
 
     await newClient.save();
