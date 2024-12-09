@@ -14,7 +14,6 @@ const test = require("./routers/test");
 const api  = require("./routers/frontend/router");
 
 const connectMongoDB = require("./config/mongodb");
-const MongoStore = require("connect-mongo");
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());

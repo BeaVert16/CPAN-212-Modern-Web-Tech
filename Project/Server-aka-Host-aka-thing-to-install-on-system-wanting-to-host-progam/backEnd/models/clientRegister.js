@@ -81,6 +81,9 @@ const clientSchema = new Schema({
   gpu: gpuSchema,        
   network: networkSchema,
   drives: driveSchema,
+  total_storage_space: {
+    type: String,
+  },
 
   bucket_nane: {
     type: String

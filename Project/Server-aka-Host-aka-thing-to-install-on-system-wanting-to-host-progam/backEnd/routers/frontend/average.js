@@ -23,9 +23,10 @@ router.get("/average", async (req, res) => {
     let gpuUsageSum = 0;
     let storageUsedSum = 0;
     let systemsCount = 0;
+    let memoryUsedSum = 0;
 
     for (const client of clients) {
-      const { bucket_id, total_ram, cpu, gpu, drives } = client;
+      const { client_id, total_ram, cpu, gpu, drives } = client;
 
       stats.total_ram += parseFloat(total_ram || 0);
       stats.total_cpu_cores += parseInt(cpu.cpu_cores || 0, 10);
@@ -36,17 +37,22 @@ router.get("/average", async (req, res) => {
         stats.total_storage += parseFloat(drive.drive_total_storage || 0);
       });
 
-      // Fetch averages from InfluxDB for the specific bucket
-      const influxStats = await getBucketAverages(bucket_id);
+      //   console.log(`Fetching data for bucket: ${bucket_id}`);
 
-      cpuUsageSum += influxStats.average_cpu_usage;
-      gpuUsageSum += influxStats.average_gpu_usage;
-      storageUsedSum += influxStats.used_storage;
+      const influxStats = await getBucketAverages(client_id);
 
-      systemsCount++;
+      if (influxStats) {
+        cpuUsageSum += influxStats.average_cpu_usage;
+        gpuUsageSum += influxStats.average_gpu_usage;
+        storageUsedSum += influxStats.used_storage;
+        memoryUsedSum += influxStats.used_memory;
+
+        systemsCount++;
+      } else {
+        console.log(`Skipping bucket ${client_id} due to missing data.`);
+      }
     }
 
-    // Finalize averages
     stats.average_cpu_usage = systemsCount ? cpuUsageSum / systemsCount : 0;
     stats.average_gpu_usage = systemsCount ? gpuUsageSum / systemsCount : 0;
     stats.used_storage = storageUsedSum;

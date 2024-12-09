@@ -1,93 +1,43 @@
-const { InfluxDB, Point } = require("@influxdata/influxdb-client");
+const { InfluxDB, flux } = require('@influxdata/influxdb-client');
 require("dotenv").config();
 
-const influxDB = new InfluxDB({
-  url: process.env.INFLUXDB_HOST,
-  token: process.env.INFLUXDB_TOKEN,
-});
+const url = process.env.INFLUXDB_HOST;
+const token = process.env.INFLUXDB_TOKEN;
+const orgID = process.env.INFLUXDB_ORG;
 
-const writeData = async (bucket_id, data) => {
-  const {
-    cpu_usage,
-    disk_usage,
-    gpu_temperature,
-    gpu_usage,
-    memory_usage,
-    network_usage,
-  } = data;
+const queryApi = new InfluxDB({ url, token }).getQueryApi(orgID);
 
-
+const getBucketAverages = async (bucketId) => {
   try {
-    const writeApi = influxDB.getWriteApi(
-      process.env.INFLUXDB_ORG,
-      bucket_id,
-      "ns"
-    );
+    const fluxQuery = flux`
+      from(bucket: "${bucketId}")
+        |> range(start: -1d) 
+        |> filter(fn: (r) => r._measurement == "usage")
+        |> group(columns: ["_field"])
+        |> mean()`;
 
-    // Prepare data points
-    const points = [];
-    if (cpu_usage !== undefined) {
-      points.push(new Point("cpu_usage").floatField("value", cpu_usage));
+    const stats = {};
+
+    for await (const { values, tableMeta } of queryApi.iterateRows(fluxQuery)) {
+      const o = tableMeta.toObject(values);
+      console.log(`Fetched data for field ${o._field}: ${o._value}`);
+
+      stats[o._field] = o._value;
     }
 
-    if (disk_usage) {
-      disk_usage.forEach((disk) => {
-        points.push(
-          new Point("disk_usage")
-            .tag("drive", disk.drive)
-            .floatField("current_usage_percent", disk.current_usage_percent)
-            .intField("used_space", disk.used_space)
-        );
-      });
-    }
-
-    if (gpu_temperature) {
-      gpu_temperature.forEach((temp, index) => {
-        points.push(
-          new Point("gpu_temperature")
-            .tag("gpu_index", index)
-            .intField("value", temp)
-        );
-      });
-    }
-
-    if (gpu_usage) {
-      gpu_usage.forEach((gpu, index) => {
-        points.push(
-          new Point("gpu_usage")
-            .tag("gpu_index", index)
-            .floatField("gpu_usage", gpu.gpu_usage)
-            .intField("used_memory", gpu.used_memory)
-        );
-      });
-    }
-
-    if (memory_usage) {
-      points.push(
-        new Point("memory_usage")
-          .floatField("total_memory", memory_usage.total_memory)
-          .floatField("free_memory", memory_usage.free_memory)
-          .floatField("used_memory", memory_usage.used_memory)
-      );
-    }
-
-    if (network_usage) {
-      network_usage.forEach((adapter) => {
-        points.push(
-          new Point("network_usage")
-            .tag("adapter_name", adapter.adapter_name)
-            .intField("bytes_received", adapter.bytes_received)
-            .intField("bytes_sent", adapter.bytes_sent)
-        );
-      });
-    }
-
-    // Write all points to InfluxDB
-    writeApi.writePoints(points);
-    await writeApi.close();
+    return {
+      average_cpu_usage: stats["cpu_usage"] || 0,
+      average_gpu_usage: stats["gpu_usage"] || 0,
+      used_storage: stats["used_storage"] || 0,
+    };
   } catch (error) {
-    throw new Error(`Error writing data to InfluxDB: ${error.message}`);
+    console.error(`Error fetching InfluxDB averages for bucket ${bucketId}:`, error);
+    return {
+      average_cpu_usage: 0,
+      average_gpu_usage: 0,
+      used_storage: 0,
+    };
   }
 };
 
-module.exports = { writeData };
+module.exports = { getBucketAverages };
