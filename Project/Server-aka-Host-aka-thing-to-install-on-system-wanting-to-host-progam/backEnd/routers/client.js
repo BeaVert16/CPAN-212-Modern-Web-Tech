@@ -4,7 +4,7 @@ const Client = require("../models/clientRegister");
 const generateClientId = require("../components/idMaker");
 const { createBucket } = require("../influx/createBucket");
 const { writeData } = require("../influx/writeData");
-const { getBucketId } = require("../influx/getBucketID"); 
+const { getBucketId } = require("../influx/getBucketID");
 
 router.post("/register", async (req, res) => {
   console.log("Somethings Going On, Working???");
@@ -98,7 +98,6 @@ router.post("/collection", async (req, res) => {
   const { client_id, metrics } = req.body;
   console.log("Received data from client:", client_id);
 
-  // Check for the nested metrics object
   const flattenedMetrics = metrics.metrics || metrics;
 
   console.log("Metrics received:", flattenedMetrics);
@@ -117,6 +116,4 @@ router.post("/collection", async (req, res) => {
   }
 });
 
-
 module.exports = router;
-
