@@ -1,0 +1,46 @@
+.sidebar-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: blue;
+}
+
+.css-1wvake5 {
+  border-right-width: 0 !important;
+}
+
+.main {
+  padding-left: 10px;
+}
+
+.content {
+  flex: 1;
+}
+
+.logo-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 80px;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.logo {
+  max-height: 100%;
+  max-width: 100%;
+}
+.plain-link {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.admin-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 80px;
+  padding-left: 10px;
+  padding-right: 10px;
+}
