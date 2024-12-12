@@ -1,8 +1,0 @@
-https://github.com/influxdata/influxdb-client-js/tree/master/examples
-
-//THIS IS HARDLY MY CODE, I USED THE GREAT DOCUMENTATION PROVIED BY THE LINK BELLOW |
-//https://github.com/influxdata/influxdb-client-js/tree/master/examples
-//https://github.com/influxdata/influxdb-client-js/blob/master/examples/createBucket.mjs
-// I Copied, Paste, & changed to work with my application
-
-lol ignore this for now, this is going to be in the influx code files
