@@ -2,10 +2,8 @@
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
+  color: '#333';
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -13,7 +11,7 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-a {
+/* a {
   font-weight: 500;
   color: #646cff;
   text-decoration: inherit;
@@ -66,3 +64,28 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+.tile {
+  background: #f0f0f0;
+  border: 1px solid #999;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.remove-button {
+  background: #ff6347;
+  border: none;
+  color: white;
+  padding: 5px 10px;
+  cursor: pointer;
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  z-index: 10;
+} */
