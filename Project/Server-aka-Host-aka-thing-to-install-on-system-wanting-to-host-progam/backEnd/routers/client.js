@@ -1,7 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const Client = require("../models/clientRegister");
 const generateClientId = require("../components/idMaker");
+
+const Client = require("../models/clientRegister");
+const Heartbeat = require("../models/heartBeat");
+
 const { createBucket } = require("../influx/createBucket");
 const { writeData } = require("../influx/writeData");
 const { getBucketId } = require("../influx/getBucketID");
@@ -19,7 +22,7 @@ router.post("/register", async (req, res) => {
       system_name,
       total_ram,
       uptime,
-      total_storage_space
+      total_storage_space,
     } = req.body;
 
     const cpu = {
@@ -28,10 +31,13 @@ router.post("/register", async (req, res) => {
       cpu_threads: cpu_info[0]?.logical_processors.toString() || "0",
     };
 
-    const gpu = {
-      gpu_name: gpu_info[0]?.name || "Unknown GPU",
-      gpu_total_memory: gpu_info[0]?.total_memory.toString() || "0",
-    };
+    const gpu =
+      gpu_info && gpu_info.length > 0
+        ? {
+            gpu_name: gpu_info[0]?.name || "Unknown GPU",
+            gpu_total_memory: gpu_info[0]?.total_memory.toString() || "0",
+          }
+        : null;
 
     const network = {
       ip_address: network_adapters[0]?.ip || "Unknown IP",
@@ -98,19 +104,21 @@ router.post("/register", async (req, res) => {
 
 router.post("/collection", async (req, res) => {
   const { client_id, metrics } = req.body;
-  console.log("Received data from client:", client_id);
-
   const flattenedMetrics = metrics.metrics || metrics;
 
-  console.log("Metrics received:", flattenedMetrics);
-
   try {
-    const client = await Client.findOne({ client_id });
-    if (!client) {
-      return res.status(404).json({ error: "No Bucket Found" });
-    }
+    const client = await Client.findOne({ client_id }).lean();
+    if (!client) return res.status(404).json({ error: "No Bucket Found" });
 
-    await writeData(client.bucket_id, flattenedMetrics);
+    await Promise.all([
+      writeData(client.bucket_id, flattenedMetrics),
+      Heartbeat.updateOne(
+        { client_id },
+        { $set: { timestamp: new Date() } },
+        { upsert: true }
+      ),
+    ]);
+
     res.json({ message: "Data written successfully" });
   } catch (error) {
     console.error("Error writing data:", error.message);

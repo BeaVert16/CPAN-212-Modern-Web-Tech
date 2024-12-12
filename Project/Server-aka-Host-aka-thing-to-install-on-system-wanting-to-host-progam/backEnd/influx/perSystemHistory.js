@@ -7,12 +7,12 @@ const orgID = process.env.INFLUXDB_ORG;
 
 const queryApi = new InfluxDB({ url, token }).getQueryApi(orgID);
 
-async function getSystemData(bucketName) {
+async function getSystemHistory(bucketName) {
   const query = `
   from(bucket: "${bucketName}")
-    |> range(start: -10m)
+    |> range(start: -24h)
     |> filter(fn: (r) => r["_measurement"] == "cpu_usage" or r["_measurement"] == "disk_usage" or r["_measurement"] == "gpu_temperature" or r["_measurement"] == "gpu_usage" or r["_measurement"] == "memory_usage" or r["_measurement"] == "network_usage")
-    |> aggregateWindow(every: 10s, fn: last, createEmpty: false)
+    |> aggregateWindow(every: 1h, fn: mean, createEmpty: false)
     |> group(columns: ["_measurement", "_field", "device"])
     |> yield(name: "last")
   `;
@@ -48,4 +48,4 @@ async function getSystemData(bucketName) {
   return graphData;
 }
 
-module.exports = { getSystemData };
+module.exports = { getSystemHistory };

@@ -5,11 +5,11 @@ require("dotenv").config();
 const sessionMiddleware = session({
   secret: process.env.SESSION_SECRET,
   resave: false,
-  saveUninitialized: false, // Do not create sessions for unauthenticated users
+  saveUninitialized: false, 
   store: MongoStore.create({
     mongoUrl: process.env.MONGODB_KEY,
     collectionName: "sessions",
-    ttl: 1000 * 60 * 60 * 24, // Session expiry (in seconds)
+    ttl: 1000 * 60 * 60 * 24, 
   }),
   cookie: { httpOnly: true, maxAge: 1000 * 60 * 60 },
 });

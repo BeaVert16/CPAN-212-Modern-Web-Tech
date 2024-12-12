@@ -10,8 +10,8 @@ const corsConfig = require("./middleware/cors");
 
 const login = require("./routers/login");
 const client = require("./routers/client");
-const test = require("./routers/test");
-const api  = require("./routers/frontend/router");
+// const test = require("./routers/test");
+const api = require("./routers/frontend/router");
 
 const connectMongoDB = require("./config/mongodb");
 
@@ -33,9 +33,9 @@ app.get("/", (req, res) => {
 
 app.use("/client/yonky", client);
 
-app.use("/test", test);
+// app.use("/test", test);
 
-app.use("/api", api)
+app.use("/api", api);
 
 app.listen(PORT, () => {
   console.log(`http://${BACKEDADDRESS}:${PORT}`);

@@ -16,7 +16,6 @@ const writeData = async (bucket_id, data) => {
     network_usage,
   } = data;
 
-
   try {
     const writeApi = influxDB.getWriteApi(
       process.env.INFLUXDB_ORG,
@@ -34,6 +33,7 @@ const writeData = async (bucket_id, data) => {
         points.push(
           new Point("disk_usage")
             .tag("drive", disk.drive)
+            .floatField("current_usage_percent", disk.current_usage_percent)
             .intField("used_space", disk.used_space)
         );
       });

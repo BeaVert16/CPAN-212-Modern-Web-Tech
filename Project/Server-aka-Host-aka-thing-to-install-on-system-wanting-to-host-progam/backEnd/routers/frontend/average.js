@@ -1,68 +1,67 @@
 const express = require("express");
 const Client = require("../../models/clientRegister");
-const { getBucketAverages } = require("../../influx/calAverage");
+const { calculateAverages } = require("../../influx/getAverage");
 
 const router = express.Router();
 
-router.get("/average", async (req, res) => {
-  try {
-    const clients = await Client.find();
+async function fetchMongoDBData() {
+  const stats = {
+    total_ram: 0,
+    total_storage: 0,
+    total_cpu_cores: 0,
+    total_cpu_threads: 0,
+    total_gpu_memory: 0,
+    client_count: 0,
+  };
 
-    const stats = {
-      total_ram: 0,
-      total_storage: 0,
-      total_cpu_cores: 0,
-      total_cpu_threads: 0,
-      total_gpu_memory: 0,
-      average_cpu_usage: 0,
-      average_gpu_usage: 0,
-      used_storage: 0,
-    };
+  stats.client_count = await Client.countDocuments();
 
-    let cpuUsageSum = 0;
-    let gpuUsageSum = 0;
-    let storageUsedSum = 0;
-    let systemsCount = 0;
-    let memoryUsedSum = 0;
+  const clients = await Client.find();
 
-    for (const client of clients) {
-      const { client_id, total_ram, cpu, gpu, drives } = client;
+  clients.forEach((client) => {
+    const { total_ram = 0, cpu = {}, gpu = {}, drives = {} } = client;
 
-      stats.total_ram += parseFloat(total_ram || 0);
-      stats.total_cpu_cores += parseInt(cpu.cpu_cores || 0, 10);
-      stats.total_cpu_threads += parseInt(cpu.cpu_threads || 0, 10);
-      stats.total_gpu_memory += parseFloat(gpu.gpu_total_memory || 0);
+    stats.total_ram += parseFloat(total_ram) / 1024;
 
+    stats.total_cpu_cores += parseInt(cpu.cpu_cores || 0, 10);
+    stats.total_cpu_threads += parseInt(cpu.cpu_threads || 0, 10);
+
+    stats.total_gpu_memory +=
+      parseFloat(gpu.gpu_total_memory || 0) / (1024 * 1024 * 1024);
+
+    if (Array.isArray(drives.attached_drives)) {
       drives.attached_drives.forEach((drive) => {
         stats.total_storage += parseFloat(drive.drive_total_storage || 0);
       });
-
-      //   console.log(`Fetching data for bucket: ${bucket_id}`);
-
-      const influxStats = await getBucketAverages(client_id);
-
-      if (influxStats) {
-        cpuUsageSum += influxStats.average_cpu_usage;
-        gpuUsageSum += influxStats.average_gpu_usage;
-        storageUsedSum += influxStats.used_storage;
-        memoryUsedSum += influxStats.used_memory;
-
-        systemsCount++;
-      } else {
-        console.log(`Skipping bucket ${client_id} due to missing data.`);
-      }
     }
+  });
 
-    stats.average_cpu_usage = systemsCount ? cpuUsageSum / systemsCount : 0;
-    stats.average_gpu_usage = systemsCount ? gpuUsageSum / systemsCount : 0;
-    stats.used_storage = storageUsedSum;
+  if (stats.total_storage >= 1000) {
+    stats.total_storage = `${(stats.total_storage / 1000).toFixed(1)} TB`;
+  } else {
+    stats.total_storage = `${stats.total_storage.toFixed(1)} GB`;
+  }
 
-    stats.average_ram = systemsCount ? stats.total_ram / systemsCount : 0;
+  return stats;
+}
 
-    res.json(stats);
+router.get("/mongo-data", async (req, res) => {
+  try {
+    const mongoData = await fetchMongoDBData();
+    res.json(mongoData);
   } catch (error) {
-    console.error("Error calculating averages:", error);
-    res.status(500).json({ error: "Failed to calculate averages" });
+    console.error("Error fetching MongoDB data:", error.message);
+    res.status(500).json({ error: "Failed to fetch MongoDB data" });
+  }
+});
+
+router.get("/average", async (req, res) => {
+  try {
+    const influxdata = await calculateAverages();
+    res.json(influxdata);
+  } catch (error) {
+    console.error("Error fetching MongoDB data:", error.message);
+    res.status(500).json({ error: "Failed to fetch MongoDB data" });
   }
 });
 

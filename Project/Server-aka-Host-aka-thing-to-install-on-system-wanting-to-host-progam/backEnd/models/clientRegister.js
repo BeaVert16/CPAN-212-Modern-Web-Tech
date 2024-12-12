@@ -19,11 +19,9 @@ const cpuSchema = new Schema({
 const gpuSchema = new Schema({
   gpu_name: {
     type: String,
-    required: true,
   },
   gpu_total_memory: {
     type: String,
-    required: true,
   },
 });
 

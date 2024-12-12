@@ -1,6 +1,6 @@
-require("dotenv").config();
 const { InfluxDB } = require("@influxdata/influxdb-client");
 const { BucketsAPI } = require("@influxdata/influxdb-client-apis");
+require("dotenv").config();
 
 const url = process.env.INFLUXDB_HOST;
 const token = process.env.INFLUXDB_TOKEN;

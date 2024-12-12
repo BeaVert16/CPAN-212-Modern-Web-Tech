@@ -11,7 +11,7 @@ const getBucketAverages = async (bucketName) => {
   try {
     const fluxQuery = flux`
         from(bucket: "${bucketName}")
-        |> range(start: -1d) 
+        |> range(start: -1m) 
         |> filter(fn: (r) => r._measurement == "cpu_usage" or r._measurement == "gpu_usage" or r._measurement == "disk_usage" or r._measurement == "memory_usage")
         |> filter(fn: (r) => r._field == "used_space" or r._field == "gpu_usage" or r._field == "used_memory" or r._field == "value")
         |> mean() // Simple aggregation without windowing

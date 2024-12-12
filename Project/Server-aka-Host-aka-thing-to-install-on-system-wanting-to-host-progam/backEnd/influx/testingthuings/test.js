@@ -9,12 +9,13 @@ const queryApi = new InfluxDB({ url, token }).getQueryApi(orgID);
 
 async function getSystemData(bucketName) {
   const query = `
-  from(bucket: "${bucketName}")
-    |> range(start: -10m)
-    |> filter(fn: (r) => r["_measurement"] == "cpu_usage" or r["_measurement"] == "disk_usage" or r["_measurement"] == "gpu_temperature" or r["_measurement"] == "gpu_usage" or r["_measurement"] == "memory_usage" or r["_measurement"] == "network_usage")
-    |> aggregateWindow(every: 10s, fn: last, createEmpty: false)
-    |> group(columns: ["_measurement", "_field", "device"])
-    |> yield(name: "last")
+    from(bucket: '${bucketName}')
+      |> range(start: -1h)
+      |> filter(fn: (r) => r["_measurement"] in [
+           "cpu_usage", "disk_usage", "gpu_temperature", "gpu_usage", "memory_usage", "network_usage"])
+      |> aggregateWindow(every: 1m, fn: mean, createEmpty: false)
+      |> group(columns: ["_measurement", "_field", "device"])
+      |> yield(name: "mean")
   `;
 
   const graphData = {};
